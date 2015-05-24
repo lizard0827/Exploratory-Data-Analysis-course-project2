@@ -1,0 +1,20 @@
+#How have emissions from motor vehicle sources changed from 1999–2008 in Baltimore City?
+setwd("/Users/lizard0827/Desktop/class/Exploratory data/exdata-data-NEI_data/")
+NEI <- readRDS("summarySCC_PM25.rds")
+SCC <- readRDS("Source_Classification_Code.rds")
+names(NEI)
+baltimoreNEI<-subset(NEI, fips=="24510")
+mergebaltimoreNEI_SCC<-merge(baltimoreNEI, SCC, by.x="SCC", by.y="SCC", na.rm=TRUE)
+library(dplyr)
+merge_select<-select(mergebaltimoreNEI_SCC, (SCC:Short.Name))
+mobile_list<-grepl("ON-ROAD", merge_select$type, ignore.case=TRUE)
+mobile_emission<-merge_select[mobile_list, ]
+mobile_emission_baltimore<-aggregate(Emissions~year, mobile_emission, sum)
+install.packages("ggplot2")
+library(ggplot2)
+mobile_emission_baltimore<-transform(mobile_emission_baltimore, year=factor(year))
+ggp<- ggplot(mobile_emission_baltimore, aes(year, Emissions))+geom_bar(stat="identity")+
+  theme_bw()+ xlab("years")+ ylab("total PM2.5 emission")+ ggtitle("Total mobile emissions in Baltimore")
+print(ggp)
+dev.copy(png, file="Plot5.png", height=480, width=480)
+dev.off()
